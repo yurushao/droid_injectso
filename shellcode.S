@@ -28,7 +28,7 @@ _inject_start_s:
 	@sub r1, r1, #0
 	@B 3b
 
-	@ dlopen
+	@dlopen
 	ldr r1, _dlopen_param2_s
 	ldr r0, _dlopen_param1_s
 	ldr r3, _dlopen_addr_s
