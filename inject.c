@@ -32,7 +32,7 @@
 #define  MAX_PATH 0x100
 
 #define REMOTE_ADDR( addr, local_base, remote_base ) \
-	( (uint32_t)(addr) + (uint32_t)(remote_base) - (uint32_t)(local_base) )
+    ( (uint32_t)(addr) + (uint32_t)(remote_base) - (uint32_t)(local_base) )
 
 const char *libc_path 		= "/system/lib/libc.so";
 const char *linker_path 	= "/system/bin/linker";
@@ -41,9 +41,9 @@ const char *proc_med_svr	= "/system/bin/mediaserver";
 const char *proc_phone		= "com.android.phone";
 
 #if ENABLE_DEBUG
-    #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, "inject-porcess", __VA_ARGS__))
+    #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, "inject-process", __VA_ARGS__))
 #else
-	#define LOGD(format,args...)
+    #define LOGD(format,args...)
 #endif
 
 /**
