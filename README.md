@@ -1,6 +1,8 @@
 droid-injectso
 ==============
 
-A shared libraries injection tool.
+A shared libraries injection tool of Android.
 
-Has been tested on Android 2.2, 2.3 and 4.1
+Please compile them with <code>android-sdk-r8e</code>, or you may need to rewrite <code>Android.mk</code>.
+
+Has been tested on Android 2.2, 2.3 and 4.1.

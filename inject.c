@@ -17,7 +17,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <string.h>
-#include <utils/Log.h>
+#include <android/log.h>
 
 #define ENABLE_DEBUG 0
 
@@ -41,10 +41,9 @@ const char *proc_med_svr	= "/system/bin/mediaserver";
 const char *proc_phone		= "com.android.phone";
 
 #if ENABLE_DEBUG
-	#define DEBUG_PRINT(format,args...) \
-		LOGD(format, ##args)
+    #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, "inject-porcess", __VA_ARGS__))
 #else
-	#define DEBUG_PRINT(format,args...)
+	#define LOGD(format,args...)
 #endif
 
 /**
@@ -324,7 +323,7 @@ void* get_remote_addr( pid_t target_pid, const char* module_name, void* local_ad
 	local_module_base = get_module_base( -1, module_name );
 	remote_module_base = get_module_base( target_pid, module_name );
 
-	DEBUG_PRINT( "[+] get_remote_addr: local[%x], remote[%x]\n", \
+	LOGD( "[+] get_remote_addr: local[%x], remote[%x]\n", \
 		local_module_base, remote_module_base );
 	
 	// symbols in module each have a fixed offset
@@ -403,7 +402,7 @@ int inject_remote_process( pid_t target_pid, const char *library_path, const cha
 
 	long parameters[10];
 
-	DEBUG_PRINT( "[+] Injecting process: %d\n", target_pid );
+	LOGD( "[+] Injecting process: %d\n", target_pid );
 
 	
 	if ( ptrace_attach( target_pid ) == -1 )
@@ -418,7 +417,7 @@ int inject_remote_process( pid_t target_pid, const char *library_path, const cha
 
 	mmap_addr = get_remote_addr( target_pid, "/system/lib/libc.so", (void *)mmap );
 
-	DEBUG_PRINT( "[+] Remote mmap address: %x\n", mmap_addr );
+	LOGD( "[+] Remote mmap address: %x\n", mmap_addr );
 
 	/* call mmap */
 	parameters[0] = 0;	// addr
@@ -428,7 +427,7 @@ int inject_remote_process( pid_t target_pid, const char *library_path, const cha
 	parameters[4] = 0; //fd
 	parameters[5] = 0; //offset
 
-	DEBUG_PRINT( "[+] Calling mmap in target process.\n" );
+	LOGD( "[+] Calling mmap in target process.\n" );
 
 	if ( ptrace_call( target_pid, (uint32_t)mmap_addr, parameters, 6, &regs ) == -1 )
 		goto exit;
@@ -436,7 +435,7 @@ int inject_remote_process( pid_t target_pid, const char *library_path, const cha
 	if ( ptrace_getregs( target_pid, &regs ) == -1 )
 		goto exit;
 
-	DEBUG_PRINT( "[+] Target process returned from mmap, return value=%x, pc=%x \n", regs.ARM_r0, regs.ARM_pc );
+	LOGD( "[+] Target process returned from mmap, return value=%x, pc=%x \n", regs.ARM_r0, regs.ARM_pc );
 
 	map_base = (uint8_t *)regs.ARM_r0;
 
@@ -445,7 +444,7 @@ int inject_remote_process( pid_t target_pid, const char *library_path, const cha
 	dlsym_addr = get_remote_addr( target_pid, linker_path, (void *)dlsym );
 	dlclose_addr = get_remote_addr( target_pid, linker_path, (void *)dlclose );
 
-	DEBUG_PRINT( "[+] Get imports: dlopen: %x, dlsym: %x, dlclose: %x\n", dlopen_addr, dlsym_addr, dlclose_addr );
+	LOGD( "[+] Get imports: dlopen: %x, dlsym: %x, dlclose: %x\n", dlopen_addr, dlsym_addr, dlclose_addr );
 
 
 	remote_code_ptr = map_base + 0x3C00;
@@ -456,7 +455,7 @@ int inject_remote_process( pid_t target_pid, const char *library_path, const cha
 	_dlsym_addr_s = (uint32_t)dlsym_addr;
 	_dlclose_addr_s = (uint32_t)dlclose_addr;
 
-	DEBUG_PRINT( "[+] Inject code start: %x, end: %x\n", local_code_ptr, &_inject_end_s );
+	LOGD( "[+] Inject code start: %x, end: %x\n", local_code_ptr, &_inject_end_s );
 
 	code_length = (uint32_t)&_inject_end_s - (uint32_t)&_inject_start_s;
 	dlopen_param1_ptr = local_code_ptr + code_length + 0x20; // 0x20 == 32
@@ -467,12 +466,12 @@ int inject_remote_process( pid_t target_pid, const char *library_path, const cha
 	/* dlopen parameter 1: library name */
 	strcpy( dlopen_param1_ptr, library_path );
 	_dlopen_param1_s = REMOTE_ADDR( dlopen_param1_ptr, local_code_ptr, remote_code_ptr );
-	DEBUG_PRINT( "[+] _dlopen_param1_s: %x\n", _dlopen_param1_s );
+	LOGD( "[+] _dlopen_param1_s: %x\n", _dlopen_param1_s );
 
 	/* dlsym parameter 2: function name */
 	strcpy( dlsym_param2_ptr, function_name );
 	_dlsym_param2_s = REMOTE_ADDR( dlsym_param2_ptr, local_code_ptr, remote_code_ptr );
-	DEBUG_PRINT( "[+] _dlsym_param2_s: %x\n", _dlsym_param2_s );
+	LOGD( "[+] _dlsym_param2_s: %x\n", _dlsym_param2_s );
 
 	/* saved cpsr */
 	_saved_cpsr_s = original_regs.ARM_cpsr;
@@ -480,14 +479,14 @@ int inject_remote_process( pid_t target_pid, const char *library_path, const cha
 	/* saved r0-pc */
 	memcpy( saved_r0_pc_ptr, &(original_regs.ARM_r0), 16 * 4 ); // r0 ~ r15
 	_saved_r0_pc_s = REMOTE_ADDR( saved_r0_pc_ptr, local_code_ptr, remote_code_ptr );
-	DEBUG_PRINT( "[+] _saved_r0_pc_s: %x\n", _saved_r0_pc_s );
+	LOGD( "[+] _saved_r0_pc_s: %x\n", _saved_r0_pc_s );
 
 	/* Inject function parameter */
 	memcpy( inject_param_ptr, param, param_size );
 	_inject_function_param_s = REMOTE_ADDR( inject_param_ptr, local_code_ptr, remote_code_ptr );
-	DEBUG_PRINT( "[+] _inject_function_param_s: %x\n", _inject_function_param_s );
+	LOGD( "[+] _inject_function_param_s: %x\n", _inject_function_param_s );
 
-	DEBUG_PRINT( "[+] Remote shellcode address: %x\n", remote_code_ptr );
+	LOGD( "[+] Remote shellcode address: %x\n", remote_code_ptr );
 	ptrace_writedata( target_pid, remote_code_ptr, local_code_ptr, 0x400 );
 
 	memcpy( &regs, &original_regs, sizeof(regs) );
@@ -496,7 +495,7 @@ int inject_remote_process( pid_t target_pid, const char *library_path, const cha
 	// change pc to execute instructions at remote_code_ptr
 	regs.ARM_pc = (long)remote_code_ptr;
 	
-	DEBUG_PRINT( "[+] hook_entry address: %x\n", _hook_entry_addr_s);
+	LOGD( "[+] hook_entry address: %x\n", _hook_entry_addr_s);
 
 	ptrace_setregs( target_pid, &regs );
 
