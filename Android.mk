@@ -9,7 +9,7 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)
 
 LOCAL_MODULE:= inject
 
-LOCAL_SHARED_LIBRARIES := libdl liblog
+LOCAL_LDLIBS := -ldl -llog 
 
 LOCAL_STATIC_LIBRARIES := libc
 
