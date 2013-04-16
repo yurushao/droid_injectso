@@ -21,7 +21,7 @@ uint32_t get_module_base(pid_t pid, const char *module_path) {
     char *pch = NULL;
     char filename[32];
     char line[512];
-    
+
     if ( pid < 0 ) {
         snprintf(filename, sizeof(filename), "/proc/self/maps");
     }
@@ -38,7 +38,7 @@ uint32_t get_module_base(pid_t pid, const char *module_path) {
         if ( strstr(line, module_path) ) {
             pch = strtok(line, "-");
             addr = strtoul(pch, NULL, 16);
-            
+
             break;
         }
     }
@@ -49,33 +49,33 @@ uint32_t get_module_base(pid_t pid, const char *module_path) {
 }
 
 uint32_t find_got_entry_address(const char *module_path, const char *symbol_name) {
-   uint32_t module_base = get_module_base(-1, module_path);
-   LOGI("[+] base address of %s: %x", module_path, module_base);
+    uint32_t module_base = get_module_base(-1, module_path);
+    LOGI("[+] base address of %s: %x", module_path, module_base);
 
-   int fd = open(module_path, O_RDONLY);
-   if ( fd == -1 ) {
-       LOGE("[-] open %s error!", module_path);
-       return 0;
-   }
+    int fd = open(module_path, O_RDONLY);
+    if ( fd == -1 ) {
+        LOGE("[-] open %s error!", module_path);
+        return 0;
+    }
 
-   Elf32_Ehdr *elf_header = (Elf32_Ehdr *)malloc(sizeof(Elf32_Ehdr));
-   if ( read(fd, elf_header, sizeof(Elf32_Ehdr)) != sizeof(Elf32_Ehdr) ) {
-       LOGE("[-] read %s error! in %s at line %d", module_path, __FILE__, __LINE__);
-       return 0;
-   }
+    Elf32_Ehdr *elf_header = (Elf32_Ehdr *)malloc(sizeof(Elf32_Ehdr));
+    if ( read(fd, elf_header, sizeof(Elf32_Ehdr)) != sizeof(Elf32_Ehdr) ) {
+        LOGE("[-] read %s error! in %s at line %d", module_path, __FILE__, __LINE__);
+        return 0;
+    }
 
-   uint32_t sh_base = elf_header->e_shoff;
-   int ndx = elf_header->e_shstrndx;
-   uint32_t shstr_base = sh_base + ndx * sizeof(Elf32_Shdr);
-   LOGI("[+] start of section headers: %x", sh_base);
-   LOGI("[+] section header string table index: %d", ndx);
-   LOGI("[+] section header of section header string table offset: %x", shstr_base);
+    uint32_t sh_base = elf_header->e_shoff;
+    int ndx = elf_header->e_shstrndx;
+    uint32_t shstr_base = sh_base + ndx * sizeof(Elf32_Shdr);
+    LOGI("[+] start of section headers: %x", sh_base);
+    LOGI("[+] section header string table index: %d", ndx);
+    LOGI("[+] section header of section header string table offset: %x", shstr_base);
 
-   lseek(fd, shstr_base, SEEK_SET);
-   Elf32_Shdr *shstr_shdr = (Elf32_Shdr *)malloc(sizeof(Elf32_Shdr));
-   if ( read(fd, shstr_shdr, sizeof(Elf32_Shdr)) != sizeof(Elf32_Shdr) ) {
-       LOGE("[-] read %s error! in %s at line %d", module_path, __FILE__, __LINE__);
-       return 0;
+    lseek(fd, shstr_base, SEEK_SET);
+    Elf32_Shdr *shstr_shdr = (Elf32_Shdr *)malloc(sizeof(Elf32_Shdr));
+    if ( read(fd, shstr_shdr, sizeof(Elf32_Shdr)) != sizeof(Elf32_Shdr) ) {
+        LOGE("[-] read %s error! in %s at line %d", module_path, __FILE__, __LINE__);
+        return 0;
     }
     LOGI("[+] section header string table offset: %x", shstr_shdr->sh_offset);
 
@@ -181,9 +181,9 @@ uint32_t do_hook(const char *module_path, uint32_t hook_func, const char *symbol
 
     if (entry_addr == 0)
         return NULL;
-    
+
     uint32_t original_addr = *entry_addr;
-    
+
     LOGD("[+] hook_fun addr: %x", hook_func);
     LOGD("[+] got entry addr: %x", entry_addr);
     LOGD("[+] original addr: %x", *entry_addr);
