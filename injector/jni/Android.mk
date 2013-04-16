@@ -2,12 +2,12 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= \
-	inject.c \
+	injector.c \
 	shellcode.S
 	
 LOCAL_C_INCLUDES := $(LOCAL_PATH)
 
-LOCAL_MODULE:= inject
+LOCAL_MODULE:= injector
 
 LOCAL_LDLIBS := -ldl -llog 
 

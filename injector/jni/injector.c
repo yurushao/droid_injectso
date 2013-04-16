@@ -17,6 +17,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <string.h>
+#include <getopt.h>
 #include <android/log.h>
 
 #define ENABLE_DEBUG 0
@@ -508,34 +509,60 @@ exit:
     return ret;
 }
 
-int main(int argc, char** argv) 
+void print_usage( const char *pname, int exit_code )
 {
-    if (argc < 2) 
+    printf( "Usage: %s -p pid -l libpath\n", pname );
+    printf( "    -h  --help      Display this usage information.\n"
+            "    -p  --pid       PID of target process.\n"
+            "    -l  --libpath   Absolute path of the shared library that will be injected.\n" );
+
+    exit( exit_code );
+}
+
+int main( int argc, char** argv )
+{
+    int target_pid;
+    char *libpath;
+
+    const char *pname = strrchr( argv[0], '/' ) + 1; 
+    if (argc < 2)
+        print_usage(pname, 1);
+
+    int next_opt;
+    const char *short_opts = "hp:l:";
+    const struct option long_opts[] = {
+        {"help",    0, NULL, 'h'},
+        {"pid",     1, NULL, 'p'},
+        {"libpath", 1, NULL, 'l'},
+        {NULL,      0, NULL,  0 }
+    };
+    
+    do
     {
-        printf("usage: %s <libpath>\n", strrchr(argv[0], '/') + 1);
-        exit(0);
-    }
+        next_opt = getopt_long( argc, argv, short_opts, long_opts, NULL );
+        switch (next_opt)
+        {
+            case 'h':
+                print_usage( pname, 0) ;
+            case 'p':
+                target_pid = atoi( optarg );
+                break;
+            case 'l':
+                libpath = optarg;
+                break;
+            case '?':
+                printf("\n");
+                print_usage( pname, 1 );
+            case -1:
+                break;
+            default:
+                ;
+        }
+    } while ( next_opt != -1 );
 
-    /*
-     * find PIDs of target processes
-     */
-    pid_t sys_svr_pid 	= find_pid_of(proc_sys_svr);
-    pid_t med_svr_pid 	= find_pid_of(proc_med_svr);
-    pid_t phone_pid 	= find_pid_of(proc_phone);
-
-    printf("[+] system_server       : %d\n", sys_svr_pid);
-    printf("[+] mediaserver         : %d\n", med_svr_pid);
-    printf("[+] com.android.phone   : %d\n", phone_pid);
-
-    char *path = argv[1];
     char *param = "";
 
-    /*
-     * inject into target processes
-     */
-    inject_remote_process( sys_svr_pid, path, "so_entry", param, strlen(param) );
-    inject_remote_process( med_svr_pid, path, "so_entry", param, strlen(param) );
-    inject_remote_process( phone_pid,   path, "so_entry", param, strlen(param) );
+    inject_remote_process( target_pid, libpath, "so_entry", param, strlen(param) );
 
-    exit(0);
+    return 0;
 }
