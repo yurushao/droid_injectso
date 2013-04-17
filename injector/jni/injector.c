@@ -37,9 +37,6 @@
 
 const char *libc_path 		= "/system/lib/libc.so";
 const char *linker_path 	= "/system/bin/linker";
-const char *proc_sys_svr 	= "system_server";
-const char *proc_med_svr	= "/system/bin/mediaserver";
-const char *proc_phone		= "com.android.phone";
 
 #if ENABLE_DEBUG
 #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, "inject-process", __VA_ARGS__))
@@ -169,13 +166,12 @@ int ptrace_call( pid_t pid, uint32_t addr, long *params, uint32_t num_params, st
         regs->ARM_cpsr &= ~CPSR_T_MASK;
     }
 
-    regs->ARM_lr = 0;	// ??
+    regs->ARM_lr = 0;	// 
 
     if ( ptrace_setregs( pid, regs ) == -1 || ptrace_continue( pid ) == -1 )
     {
         return -1;
     }
-
 
     waitpid( pid, NULL, WUNTRACED );
 
@@ -340,7 +336,7 @@ int find_pid_of( const char *process_name )
 {
     int id;
     pid_t pid = -1;
-    DIR* dir;
+    DIR *dir;
     FILE *fp;
     char filename[32];
     char cmdline[256];
@@ -405,10 +401,8 @@ int inject_remote_process( pid_t target_pid, const char *library_path, const cha
 
     LOGD( "[+] Injecting process: %d\n", target_pid );
 
-
     if ( ptrace_attach( target_pid ) == -1 )
         return EXIT_SUCCESS;
-
 
     if ( ptrace_getregs( target_pid, &regs ) == -1 )
         goto exit;
@@ -447,10 +441,8 @@ int inject_remote_process( pid_t target_pid, const char *library_path, const cha
 
     LOGD( "[+] Get imports: dlopen: %x, dlsym: %x, dlclose: %x\n", dlopen_addr, dlsym_addr, dlclose_addr );
 
-
     remote_code_ptr = map_base + 0x3C00;
     local_code_ptr = (uint8_t *)&_inject_start_s;
-
 
     _dlopen_addr_s = (uint32_t)dlopen_addr;
     _dlsym_addr_s = (uint32_t)dlsym_addr;
@@ -540,10 +532,10 @@ int main( int argc, char** argv )
     do
     {
         next_opt = getopt_long( argc, argv, short_opts, long_opts, NULL );
-        switch (next_opt)
+        switch ( next_opt )
         {
             case 'h':
-                print_usage( pname, 0) ;
+                print_usage( pname, 0 );
             case 'p':
                 target_pid = atoi( optarg );
                 break;
