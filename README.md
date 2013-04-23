@@ -16,7 +16,7 @@ Enter each source directory and run <code>ndk-build</code> provided by <code>and
 
 	$ cd injector
 	$ $NDK/ndk-build
-	$ cd ../sample
+	$ cd ../samples/test
 	$ $NDK/ndk-build
 	
 <code>$NDK</code> is the root directory of <code>android-ndk-r8e</code>.
