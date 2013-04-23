@@ -1,11 +1,13 @@
 # droid-injectso
 
 
-A shared libraries injection tool of Android.
+A shared libraries injection tool and ELF hook engine of Android.
 
 Please compile them with <code>android-ndk-r8e</code>, or you may need to rewrite <code>Android.mk</code>.
 
 Has been tested on Android 2.2, 2.3 and 4.1.
+
+Special thanks to the author of <code>libinject</code> http://bbs.pediy.com/showthread.php?t=141355
 
 ### Compilation
 
@@ -43,4 +45,6 @@ Next, you can refer to <code>injector</code>'s usage information to inject <code
     
 What should be noticed is that injection may be failed if you specify a *relative path*  after <code>-l</code> (or <code>--libpath</code>) option.
 
-
+### Reference
+1. http://bbs.pediy.com/showthread.php?t=141355
+2. http://www.codeproject.com/Articles/70302/Redirecting-functions-in-shared-ELF-libraries

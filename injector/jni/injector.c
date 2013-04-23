@@ -1,7 +1,9 @@
 /**
- * filename     : libinject.c
+ * filename     : injector.c
  * description  : shared libraries injection helper   
  * author       : guhe 
+ * reference    : http://bbs.pediy.com/showthread.php?t=141355 & 
+ *                http://www.debugman.com/thread/6260/1/1
  * created      : 
  * modified by  : shaoyuru@whu.edu.cn
  */
@@ -77,7 +79,6 @@ int ptrace_readdata( pid_t pid,  uint8_t *src, uint8_t *buf, size_t size )
     }
 
     return 0;
-
 }
 
 /**
@@ -325,8 +326,7 @@ void* get_remote_addr( pid_t target_pid, const char* module_name, void* local_ad
 
     // symbols in module each have a fixed offset
     // for example, mmap() has a fixed offset in libc.so
-    return (void *)( (uint32_t)local_addr + (uint32_t)remote_module_base \
-            - (uint32_t)local_module_base );
+    return (void *)REMOTE_ADDR( local_addr, remote_module_base, local_module_base );
 }
 
 /**
@@ -362,9 +362,8 @@ int find_pid_of( const char *process_name )
                 fgets( cmdline, sizeof(cmdline), fp );
                 fclose( fp );
 
-                if ( strcmp( process_name, cmdline ) == 0 )
+                if ( strcmp( process_name, cmdline ) == 0 ) // process found
                 {
-                    /* process found */
                     pid = id;
                     break;
                 }
@@ -407,14 +406,14 @@ int inject_remote_process( pid_t target_pid, const char *library_path, const cha
     if ( ptrace_getregs( target_pid, &regs ) == -1 )
         goto exit;
 
-    /* save original registers */
+    // save original registers
     memcpy( &original_regs, &regs, sizeof(regs) );
 
     mmap_addr = get_remote_addr( target_pid, "/system/lib/libc.so", (void *)mmap );
 
     LOGD( "[+] Remote mmap address: %x\n", mmap_addr );
 
-    /* call mmap */
+    // call mmap 
     parameters[0] = 0;	// addr
     parameters[1] = 0x4000; // size
     parameters[2] = PROT_READ | PROT_WRITE | PROT_EXEC;  // prot
