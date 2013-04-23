@@ -1,0 +1,10 @@
+LOCAL_PATH := $(call my-dir)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE    := libhook_ioctl
+LOCAL_LDLIBS	:= -llog
+LOCAL_SRC_FILES := hook_ioctl.c \
+	../../../libhook/hook.c
+
+include $(BUILD_SHARED_LIBRARY)

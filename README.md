@@ -5,9 +5,10 @@ A shared libraries injection tool and ELF hook engine of Android.
 
 Please compile them with <code>android-ndk-r8e</code>, or you may need to rewrite <code>Android.mk</code>.
 
-Has been tested on Android 2.2, 2.3 and 4.1.
+Has been tested on Android 2.2, 2.3 and 4.1, and *root privilege is REQUIRED.*
 
 Special thanks to the author of <code>libinject</code> http://bbs.pediy.com/showthread.php?t=141355
+
 
 ### Compilation
 
@@ -44,6 +45,9 @@ Next, you can refer to <code>injector</code>'s usage information to inject <code
     -l  --libpath   Absolute path of the shared library that will be injected.
     
 What should be noticed is that injection may be failed if you specify a *relative path*  after <code>-l</code> (or <code>--libpath</code>) option.
+
+### Hook engine
+Please take a look at the sample project <code>samples/hook_ioctl</code>.
 
 ### Reference
 1. http://bbs.pediy.com/showthread.php?t=141355
