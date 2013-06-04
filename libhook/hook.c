@@ -67,6 +67,13 @@ uint32_t get_module_base(pid_t pid, const char *module_path)
 uint32_t find_got_entry_address(const char *module_path, const char *symbol_name) 
 {
     uint32_t module_base = get_module_base(-1, module_path);
+
+    if ( module_base == 0 ) 
+    {
+        LOGE("[-] it seems that process %d does not dependent on %s", getpid(), module_path);
+        return 0;
+    }
+    
     LOGI("[+] base address of %s: 0x%x", module_path, module_base);
 
     int fd = open(module_path, O_RDONLY);
@@ -184,6 +191,7 @@ uint32_t find_got_entry_address(const char *module_path, const char *symbol_name
     }
 
     uint32_t offset = rel_ent->r_offset;
+    Elf32_Half type = elf_header->e_type; // ET_EXEC or ET_DYN
 
     free(elf_header);
     free(shstr_shdr);
@@ -196,7 +204,13 @@ uint32_t find_got_entry_address(const char *module_path, const char *symbol_name
     free(dynsymtab);
     free(rel_ent);
 
-    return offset + module_base;
+    // GOT entry offset is different between ELF executables and shared libraries
+    if ( type == ET_EXEC )
+        return offset;
+    else if ( type == ET_DYN )
+        return offset + module_base;
+
+    return 0;
 }
 
 /**
@@ -208,11 +222,10 @@ uint32_t find_got_entry_address(const char *module_path, const char *symbol_name
  */
 uint32_t do_hook(const char *module_path, uint32_t hook_func, const char *symbol_name) 
 {
-
     uint32_t entry_addr = find_got_entry_address(module_path, symbol_name);
 
     if ( entry_addr == 0 )
-        return NULL;
+        return 0;
 
     uint32_t original_addr = 0;
     // save original GOT entry content
