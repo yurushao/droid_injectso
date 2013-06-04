@@ -9,14 +9,14 @@
 
 void _init(char *args)
 {
-    LOGI("lib loaded ...");
+    LOGI("[+] lib loaded ...");
 }
 
 int (*orig_ioctl)(int, int, ...);
 
 int hooked_ioctl(int fd, int cmd, void *data)
 {
-    LOGI("ioctl is invoked ...");
+    LOGI("[+] ioctl is invoked ...");
     // do something here
 
     return (*orig_ioctl)(fd, cmd, data);
@@ -35,9 +35,9 @@ void so_entry(char *p)
 
     if ( orig_ioctl == 0 )
     {
-        LOGE("[+] hook %s failed", sym);
+        LOGE("[-] hook %s failed", sym);
         return ;
     }
 
-    LOGI("orignal ioctl: 0x%x", orig_ioctl);
+    LOGI("[+] orignal ioctl: 0x%x", orig_ioctl);
 }
