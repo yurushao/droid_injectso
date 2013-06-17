@@ -326,7 +326,7 @@ void* get_remote_addr( pid_t target_pid, const char* module_name, void* local_ad
 
     // symbols in module each have a fixed offset
     // for example, mmap() has a fixed offset in libc.so
-    return (void *)REMOTE_ADDR( local_addr, remote_module_base, local_module_base );
+    return (void *)REMOTE_ADDR( local_addr, local_module_base, remote_module_base );
 }
 
 /**
